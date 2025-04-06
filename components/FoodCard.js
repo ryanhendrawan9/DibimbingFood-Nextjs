@@ -4,14 +4,17 @@ import Image from "next/image";
 
 const FoodCard = ({ food }) => {
   return (
-    <Link href={`/foods/${food.id}`}>
+    <Link href={`/foods/${food.id}`} passHref>
       <div className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105">
         <div className="relative h-48 w-full">
           {food.imageUrl ? (
-            <img
+            <Image
               src={food.imageUrl}
               alt={food.name}
               className="w-full h-full object-cover"
+              width={300}
+              height={200}
+              unoptimized={true}
             />
           ) : (
             <div className="w-full h-full bg-gray-300 flex items-center justify-center">

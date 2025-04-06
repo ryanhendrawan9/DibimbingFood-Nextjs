@@ -11,16 +11,15 @@ export default function CreateFood() {
   const router = useRouter();
   const { getToken } = useAuth();
 
-  const handleCreate = async (foodData) => {
-    setIsSubmitting(true);
-    setError("");
-
+  const handleCreate = async (newFood) => {
     try {
-      await createFood(foodData);
+      setIsSubmitting(true);
+      setError("");
+      const token = getToken();
+      await createFood(newFood);
       router.push("/foods");
     } catch (err) {
-      setError(err.message || "Failed to create food. Please try again.");
-      console.error(err);
+      setError(err.message || "Failed to create food");
     } finally {
       setIsSubmitting(false);
     }
@@ -29,7 +28,6 @@ export default function CreateFood() {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
@@ -46,9 +44,6 @@ export default function CreateFood() {
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Create New Food
               </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                Fill in the details to add a new food item.
-              </p>
             </div>
 
             <div className="border-t border-gray-200 p-4 sm:p-6">
@@ -58,7 +53,11 @@ export default function CreateFood() {
                 </div>
               )}
 
-              <FoodForm onSubmit={handleCreate} buttonText="Create Food" />
+              <FoodForm
+                onSubmit={handleCreate}
+                buttonText={isSubmitting ? "Creating..." : "Create Food"}
+                disabled={isSubmitting}
+              />
             </div>
           </div>
         </div>

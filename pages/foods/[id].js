@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Navbar from "../../components/Navbar";
 import FoodForm from "../../components/FoodForm";
@@ -7,6 +7,7 @@ import { useAuth } from "../../utils/auth";
 
 export default function FoodDetail({ initialFood }) {
   const [food, setFood] = useState(initialFood);
+  const [isLoading, setIsLoading] = useState(!initialFood);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
@@ -15,46 +16,73 @@ export default function FoodDetail({ initialFood }) {
   const { id } = router.query;
   const { getToken } = useAuth();
 
-  const handleUpdate = async (updatedFood) => {
-    setIsSubmitting(true);
-    setError("");
-    setSuccess("");
+  useEffect(() => {
+    if (!initialFood) {
+      const fetchFood = async () => {
+        try {
+          setIsLoading(true);
+          const token = getToken();
+          if (!token) {
+            router.push("/login");
+            return;
+          }
+          const response = await getFoodById(id);
+          setFood(response.data);
+        } catch (err) {
+          setError("Failed to fetch food details");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchFood();
+    }
+  }, [id, initialFood, getToken, router]);
 
+  const handleUpdate = async (updatedFood) => {
     try {
+      setIsSubmitting(true);
+      setError("");
+      const token = getToken();
       const response = await updateFood(id, updatedFood);
       setFood(response.data);
       setSuccess("Food updated successfully!");
-
-      // Reload page after 1 second to show updated data
-      setTimeout(() => {
-        router.reload();
-      }, 1000);
     } catch (err) {
-      setError(err.message || "Failed to update food. Please try again.");
-      console.error(err);
+      setError(err.message || "Failed to update food");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    // Confirm deletion
     if (!window.confirm("Are you sure you want to delete this food?")) {
       return;
     }
-
-    setIsDeleting(true);
-    setError("");
-
     try {
+      setIsDeleting(true);
+      const token = getToken();
       await deleteFood(id);
       router.push("/foods");
     } catch (err) {
-      setError(err.message || "Failed to delete food. Please try again.");
-      console.error(err);
+      setError(err.message || "Failed to delete food");
+    } finally {
       setIsDeleting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            <div className="text-center py-10">
+              <p className="text-gray-600">Loading food details...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!food) {
     return (
@@ -74,7 +102,6 @@ export default function FoodDetail({ initialFood }) {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-6">
@@ -128,7 +155,8 @@ export default function FoodDetail({ initialFood }) {
               <FoodForm
                 initialData={food}
                 onSubmit={handleUpdate}
-                buttonText="Update Food"
+                buttonText={isSubmitting ? "Updating..." : "Update Food"}
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -138,25 +166,16 @@ export default function FoodDetail({ initialFood }) {
   );
 }
 
-// Server-side rendering to get food details
 export async function getServerSideProps(context) {
   const { id } = context.params;
-
   try {
-    // For now, let's use a default token from the assignment
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1pZnRhaGZhcmhhbkBnbWFpbC5jb20iLCJ1c2VySWQiOiJjYTIzZDdjYy02Njk1LTQzNGItODE2Yy03ZTlhNWMwNGMxNjQiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2NjE4NzUzMjF9.wV2OECzC25qNujtyb9YHyzYIbYEV-wud3TQsYv7oB4Q";
-
-    const response = await getFoodById(id, token);
-
+    const response = await getFoodById(id);
     return {
       props: {
         initialFood: response.data || null,
       },
     };
   } catch (error) {
-    console.error("Error fetching food on server:", error);
-
     return {
       props: {
         initialFood: null,

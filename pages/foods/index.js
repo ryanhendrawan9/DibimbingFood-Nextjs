@@ -13,40 +13,35 @@ export default function FoodsList({ initialFoods }) {
   const router = useRouter();
 
   useEffect(() => {
-    // If we don't have initial foods from SSR, fetch them client-side
     if (!initialFoods) {
       const fetchFoods = async () => {
         try {
+          setIsLoading(true);
           const token = getToken();
           if (!token) {
             router.push("/login");
             return;
           }
-
-          const response = await getFoods(token);
+          const response = await getFoods();
           setFoods(response.data || []);
         } catch (err) {
-          setError("Failed to fetch foods. Please try again.");
-          console.error(err);
+          setError("Failed to fetch foods");
         } finally {
           setIsLoading(false);
         }
       };
-
       fetchFoods();
     }
   }, [initialFoods, router, getToken]);
 
-  // Force refresh function
   const refreshFoods = async () => {
-    setIsLoading(true);
     try {
+      setIsLoading(true);
       const token = getToken();
-      const response = await getFoods(token);
+      const response = await getFoods();
       setFoods(response.data || []);
-      setError("");
     } catch (err) {
-      setError("Failed to refresh foods. Please try again.");
+      setError("Failed to refresh foods");
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +50,6 @@ export default function FoodsList({ initialFoods }) {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="mb-4 flex justify-between items-center">
@@ -63,8 +57,9 @@ export default function FoodsList({ initialFoods }) {
             <button
               onClick={refreshFoods}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              disabled={isLoading}
             >
-              Refresh
+              {isLoading ? "Refreshing..." : "Refresh"}
             </button>
           </div>
 
@@ -76,8 +71,7 @@ export default function FoodsList({ initialFoods }) {
 
           {isLoading ? (
             <div className="text-center py-10">
-              <div className="spinner"></div>
-              <p className="mt-2 text-gray-600">Loading foods...</p>
+              <p className="text-gray-600">Loading foods...</p>
             </div>
           ) : foods.length === 0 ? (
             <div className="text-center py-10">
@@ -96,23 +90,15 @@ export default function FoodsList({ initialFoods }) {
   );
 }
 
-// Server-side rendering to get foods
-export async function getServerSideProps(context) {
+export async function getServerSideProps() {
   try {
-    // For now, let's use a default token from the assignment
-    const token =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1pZnRhaGZhcmhhbkBnbWFpbC5jb20iLCJ1c2VySWQiOiJjYTIzZDdjYy02Njk1LTQzNGItODE2Yy03ZTlhNWMwNGMxNjQiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE2NjE4NzUzMjF9.wV2OECzC25qNujtyb9YHyzYIbYEV-wud3TQsYv7oB4Q";
-
-    const response = await getFoods(token);
-
+    const response = await getFoods();
     return {
       props: {
         initialFoods: response.data || [],
       },
     };
   } catch (error) {
-    console.error("Error fetching foods on server:", error);
-
     return {
       props: {
         initialFoods: [],
