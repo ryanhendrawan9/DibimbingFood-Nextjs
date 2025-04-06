@@ -18,7 +18,7 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link href="/foods">
               <span className="flex-shrink-0 cursor-pointer">
-                <h1 className="text-xl font-bold">Food App</h1>
+                <h1 className="text-xl font-bold">Dibimbing Food</h1>
               </span>
             </Link>
           </div>
