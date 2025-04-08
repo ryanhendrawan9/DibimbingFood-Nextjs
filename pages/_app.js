@@ -5,12 +5,15 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>Food App</title>
+        <title>Dibimbing Food</title>
         <meta
           name="description"
           content="A food application built with Next.js"
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link
+          rel="icon"
+          href="https://learn.dibimbing.id/logo-dibimbing-blue-512.svg"
+        />
       </Head>
       <Component {...pageProps} />
     </>
