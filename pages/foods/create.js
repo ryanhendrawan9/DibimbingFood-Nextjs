@@ -146,28 +146,6 @@ export default function CreateFood() {
             </motion.div>
           </div>
         </motion.main>
-
-        {/* Attribution for Unsplash image */}
-        <div className="fixed bottom-2 right-2 text-white/40 text-xs">
-          Photo by{" "}
-          <a
-            href="https://unsplash.com/photos/interior-photography-of-restaurant-hrlvr2ZlUNk"
-            className="underline hover:text-white/60"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Jason Leung
-          </a>{" "}
-          on{" "}
-          <a
-            href="https://unsplash.com/"
-            className="underline hover:text-white/60"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Unsplash
-          </a>
-        </div>
       </div>
     </div>
   );
